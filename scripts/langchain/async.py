@@ -125,9 +125,7 @@ async def main() -> None:
 
     df.to_excel(OUTPUT_FILE, index=False)
     print(f"Archivo generado: {OUTPUT_FILE}")
-    print(
-        df
-    )
+    print(df)
 
 
 if __name__ == "__main__":
