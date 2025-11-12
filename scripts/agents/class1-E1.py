@@ -151,7 +151,27 @@ if tool_calls:
     second_response = client.chat.completions.create(
         model=MODEL,
         messages=messages,
+        tools=tools,  # ¡IMPORTANTE: vuelve a pasar las tools!
+        tool_choice="auto"
     )
 
     print("\nSegunda respuesta:")
     print(second_response.choices[0].message.content)
+
+    second_tool_calls = second_response.choices[0].message.tool_calls
+    if second_tool_calls:
+        # Ahora probablemente el modelo quiera llamar a write_report
+        for tool_call in second_tool_calls:
+            function_name = tool_call.function.name
+            function_to_call = available_functions[function_name]
+            function_args = json.loads(tool_call.function.arguments)
+            function_response = function_to_call(**function_args)
+            new_message = {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": function_name,
+                "content": function_response,
+            }
+            messages.append(new_message)
+            print("Nuevo mensaje (write_report):")
+            print(Pretty(new_message))
