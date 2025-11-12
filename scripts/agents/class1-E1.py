@@ -50,9 +50,10 @@ def get_topic_report(topic):
         "details": "\n".join(details) or "No se encontraron resultados."
     })
 
-def write_report(report):
-    with open("report.txt", "w") as file:
+def write_report(report, file_name):
+    with open(file_name, "w") as file:
         file.write(report)
+    return "File " + file_name + " created Successfully"
 
 
 # Paso 1: enviar al modelo la conversación y las funciones que tiene disponibles
@@ -89,6 +90,10 @@ tools = [
                     "report": {
                         "type": "string",
                         "description": "reporte del tema investigado",
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "description": "nombre del archivo del reporte",
                     }
                 },
                 "required": ["report"],
@@ -96,11 +101,6 @@ tools = [
         },
     }
 ]
-
-available_functions = {
-    "get_topic_report": get_topic_report,
-    "write_report": write_report
-}
 
 response = client.chat.completions.create(
     model=MODEL,
