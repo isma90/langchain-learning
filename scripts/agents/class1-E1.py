@@ -1,35 +1,16 @@
 import os
 import json
 from tavily import TavilyClient
-from typing import Iterable, Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 from rich import print
 from rich.pretty import Pretty
 
 load_dotenv()
-SERPAPI_KEY = os.getenv("SERPAPI_KEY")
+
 MODEL = 'gpt-5-mini'
-
-
-def get_secret(key: str, *, required: bool = True) -> Optional[str]:
-    """Return a secret regardless of the runtime."""
-    value = os.getenv(key)
-    if required and not value:
-        raise RuntimeError(f'Environment variable {key} is not set.')
-    return value
-
-
-def configure_environment(required_keys: Iterable[str]) -> None:
-    for key in required_keys:
-        get_secret(key)
-
-configure_environment(["OPENAI_API_KEY"])
-
-client = OpenAI()
-
-
-tavily_api_key = get_secret('TAVILY_API_KEY')
+llm = OpenAI()
+tavily_api_key = os.getenv('TAVILY_API_KEY')
 tavily = TavilyClient(api_key=tavily_api_key)
 
 def get_topic_report(topic):
@@ -61,6 +42,7 @@ messages = [{"role": "user", "content": "Necesito que elijas un tema, investigue
 print("Mensaje inicial:")
 print(Pretty(messages))
 
+# Definición de tools
 tools = [
     {
         "type": "function",
@@ -102,7 +84,7 @@ tools = [
     }
 ]
 
-response = client.chat.completions.create(
+response = llm.chat.completions.create(
     model=MODEL,
     messages=messages,
     tools=tools,
@@ -112,17 +94,16 @@ response_message = response.choices[0].message
 print ("Respuesta  a la primera llamada:")
 print(Pretty(response_message))
 
-
+available_functions = {
+    "get_topic_report": get_topic_report,
+    "write_report": write_report
+}
 
 tool_calls = response_message.tool_calls
 # Paso 2: checkear si el modelo pidió ejecutar una función
 if tool_calls:
     # Paso 3: llamar a la función
     # Nota: la respuesta JSON podría no siempre ser válida, tenemos que capturar esos errores
-    available_functions = {
-        "get_topic_report": get_topic_report,
-        "write_report": write_report
-    }  # en este ejemplo hay una sola función, pero podría haber más
     messages.append(response_message)  # agregar la respuesta del asistente al historial de conversación
 
     # Paso 4: enviar la información de cada function call y respuesta correspondiente
@@ -148,7 +129,7 @@ if tool_calls:
         print("Nuevo mensaje:")
         print(Pretty(new_message))
     # ahora podemos volver a llamar al modelo, que encontrará las respuestas a las llamadas de función en el historial
-    second_response = client.chat.completions.create(
+    second_response = llm.chat.completions.create(
         model=MODEL,
         messages=messages,
         tools=tools,  # ¡IMPORTANTE: vuelve a pasar las tools!

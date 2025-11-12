@@ -11,3 +11,5 @@ wheels/
 
 .env
 *.txt
+.idea
+.uv-cache
