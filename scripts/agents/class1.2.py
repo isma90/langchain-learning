@@ -12,7 +12,6 @@ from tavily import TavilyClient
 load_dotenv()
 langfuse_handler = CallbackHandler()
 tavily_api_key = os.getenv('TAVILY_API_KEY')
-openai_api_key = os.getenv('OPENAI_API_KEY')
 tavily = TavilyClient(api_key=tavily_api_key)
 
 # ---------- Definimos 2 herramientas simples ----------
@@ -36,16 +35,13 @@ def buscar(term: str) -> str:
     })
 
 @tool
-def resumir(texto: str) -> str:
-    """Devuelve un resumen muy simple (demo)."""
-    oraciones = [s.strip() for s in texto.split('.') if s.strip()]
-    if not oraciones:
-        return "No hay contenido para resumir."
-    if len(oraciones) == 1:
-        return oraciones[0]
-    return f"{oraciones[0]}. ... {oraciones[-1]}."
+def write_report(report, file_name):
+    """Escribe archivos en disco"""
+    with open(file_name, "w") as file:
+        file.write(report)
+    return "File " + file_name + " created Successfully"
 
-tools_basicos = [buscar, resumir]
+tools_basicos = [buscar, write_report]
 
 # ---------- Modelo ----------
 # Puedes pasar un string de modelo (proveedor:modelo) o una instancia.
@@ -57,8 +53,7 @@ agent_basico = create_agent(
     model=model,
     tools=tools_basicos,
     system_prompt=(
-        "Eres un asistente conciso. Cuando corresponda, usa las herramientas para "
-        "buscar y resumir información antes de responder."
+        "Busca en internet sobre algún tema que selecciones, luego de investigar arma un reporte con lo guardas como archivo"
     ),
 )
 
