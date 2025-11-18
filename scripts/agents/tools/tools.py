@@ -209,3 +209,10 @@ def _extraer_numero(texto: str, patron: str) -> float:
         except (ValueError, IndexError):
             return 0.0
     return 0.0
+
+@tool
+def escribir_archivo(nombre: str, contenido: str) -> str:
+    """Escribe un archivo de texto en disco. ACCIÓN SENSIBLE."""
+    with open(nombre, "w", encoding="utf-8") as f:
+        f.write(contenido)
+    return f"✓ Archivo '{nombre}' creado exitosamente."

@@ -13,3 +13,4 @@ wheels/
 *.txt
 .idea
 .uv-cache
+*.xlsx
